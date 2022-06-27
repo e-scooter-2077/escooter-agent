@@ -1,0 +1,11 @@
+﻿{
+  "profiles": {
+    "EScooter.Agent.Raspberry": {
+      "commandName": "Project",
+      "dotnetRunMessages": true,
+      "environmentVariables": {
+        "DOTNET_ENVIRONMENT": "Development"
+      }
+    }
+  }
+}
