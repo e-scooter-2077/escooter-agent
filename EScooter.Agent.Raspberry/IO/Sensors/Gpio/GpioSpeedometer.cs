@@ -1,19 +1,16 @@
 ﻿using EScooter.Agent.Raspberry.Model;
-using System.Device.Gpio;
+using Iot.Device.Adc;
 using UnitsNet;
 
 namespace EScooter.Agent.Raspberry.IO.Sensors.Gpio;
 
-public class GpioSpeedometer : ISensor<Speed>
+public class GpioSpeedometer : BaseMcp3xxxSensor<Speed>
 {
-    private readonly GpioController _gpioController;
+    private static readonly Speed _theoreticalMaxSpeed = Speed.FromKilometersPerHour(40);
 
-    public GpioSpeedometer(GpioController gpioController)
+    public GpioSpeedometer(Mcp3xxx mcp, int mcpChannel) : base(mcp, mcpChannel)
     {
-        _gpioController = gpioController;
     }
 
-    public Task Setup() => throw new NotImplementedException();
-
-    public Task<Speed> ReadValue() => throw new NotImplementedException();
+    protected override Speed ConvertRawValue(Fraction fraction) => _theoreticalMaxSpeed * fraction.Base1Value;
 }

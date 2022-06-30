@@ -1,18 +1,13 @@
 ﻿using EScooter.Agent.Raspberry.Model;
-using System.Device.Gpio;
+using Iot.Device.Adc;
 
 namespace EScooter.Agent.Raspberry.IO.Sensors.Gpio;
 
-public class GpioBatterySensor : ISensor<Fraction>
+public class GpioBatterySensor : BaseMcp3xxxSensor<Fraction>
 {
-    private readonly GpioController _gpioController;
-
-    public GpioBatterySensor(GpioController gpioController)
+    public GpioBatterySensor(Mcp3xxx mcp, int mcpChannel) : base(mcp, mcpChannel)
     {
-        _gpioController = gpioController;
     }
 
-    public Task Setup() => throw new NotImplementedException();
-
-    public Task<Fraction> ReadValue() => throw new NotImplementedException();
+    protected override Fraction ConvertRawValue(Fraction fraction) => fraction;
 }
