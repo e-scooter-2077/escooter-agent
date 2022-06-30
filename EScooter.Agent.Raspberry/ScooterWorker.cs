@@ -67,9 +67,14 @@ public class ScooterWorker : BackgroundService
     {
         await ScheduleTask(async () =>
         {
+            var newLockedState = desired.Locked ?? true;
+            await _scooterDevice.MagneticBrakes.SetValue(newLockedState);
+            var newDesiredMaxSpeed = desired.MaxSpeed is null ? _defaultMaxSpeed : Speed.FromMetersPerSecond(desired.MaxSpeed.Value);
+            await _scooterDevice.MaxSpeedEnforcer.SetValue(newDesiredMaxSpeed);
             UpdateScooterState(s => s with
             {
-
+                Locked = newLockedState,
+                DesiredMaxSpeed = newDesiredMaxSpeed
             });
         });
     }
@@ -89,6 +94,8 @@ public class ScooterWorker : BackgroundService
 
         var sensorsState = await _scooterDevice.ReadSensorsState();
 
+        await OnDesiredPropertiesUpdate(desired);
+
         _scooterState = new ScooterState(
             DesiredMaxSpeed: desired.MaxSpeed is null ? _defaultMaxSpeed : Speed.FromMetersPerSecond(desired.MaxSpeed.Value),
             Locked: DefaultLockedState,
@@ -96,7 +103,6 @@ public class ScooterWorker : BackgroundService
             Speed: sensorsState.Speed,
             Position: sensorsState.Position);
 
-        await OnDesiredPropertiesUpdate(desired);
     }
 
     private void UpdateScooterState(Func<ScooterState, ScooterState> updateAction)

@@ -3,14 +3,15 @@ using UnitsNet;
 
 namespace EScooter.Agent.Raspberry.Model;
 
-public record ScooterDevice(ISensor<Speed> Speedometer, ISensor<Coordinate> Gps, ISensor<Fraction> Battery)
+public record ScooterDevice(ISensor<Speed> Speedometer, ISensor<Coordinate> Gps, ISensor<Fraction> Battery, IActuator<bool> MagneticBrakes, IActuator<Speed> MaxSpeedEnforcer)
 {
     public async Task Setup()
     {
         await Task.WhenAll(
             Speedometer.Setup(),
             Gps.Setup(),
-            Battery.Setup());
+            Battery.Setup(),
+            MagneticBrakes.Setup());
     }
 
     public async Task<ScooterSensorsState> ReadSensorsState()
