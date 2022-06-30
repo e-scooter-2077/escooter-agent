@@ -34,9 +34,9 @@ public class IotHubScooterWrapper : IDisposable
         return ToDesiredState(twin.Properties.Desired.ToJson());
     }
 
-    public async Task SendTelemetry(ScooterTelemetryDto telemetry)
+    public async Task SendSensorsTelemetry(ScooterSensorsState sensorsState)
     {
-        using var message = CreateMessageFromJson(JsonConvert.SerializeObject(telemetry));
+        using var message = CreateMessageFromJson(JsonConvert.SerializeObject(ScooterTelemetryDto.FromSensorsState(sensorsState)));
         await _deviceClient.SendEventAsync(message);
     }
 

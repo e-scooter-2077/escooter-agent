@@ -1,4 +1,3 @@
-using EScooter.Agent.Raspberry.Dto;
 using EScooter.Agent.Raspberry.IotHub;
 using EScooter.Agent.Raspberry.Model;
 using System.Threading.Channels;
@@ -53,7 +52,7 @@ public class ScooterWorker : BackgroundService
         await ScheduleTask(async () =>
         {
             var sensorsState = await _scooterDevice.ReadSensorsState();
-            await _iotHubScooter.SendTelemetry(ScooterTelemetryDto.FromSensorsState(sensorsState));
+            await _iotHubScooter.SendSensorsTelemetry(sensorsState);
         });
     }
 
