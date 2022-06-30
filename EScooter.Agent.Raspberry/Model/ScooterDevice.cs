@@ -11,7 +11,8 @@ public record ScooterDevice(ISensor<Speed> Speedometer, ISensor<Coordinate> Gps,
             Speedometer.Setup(),
             Gps.Setup(),
             Battery.Setup(),
-            MagneticBrakes.Setup());
+            MagneticBrakes.Setup(),
+            MaxSpeedEnforcer.Setup());
     }
 
     public async Task<ScooterSensorsState> ReadSensorsState()

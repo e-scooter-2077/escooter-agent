@@ -2,15 +2,11 @@ using EScooter.Agent.Raspberry.Dto;
 using EScooter.Agent.Raspberry.Model;
 using Microsoft.Azure.Devices.Client;
 using System.Threading.Channels;
-using UnitsNet;
 
 namespace EScooter.Agent.Raspberry;
 
 public class ScooterWorker : BackgroundService
 {
-    private const bool DefaultLockedState = false;
-
-    private static readonly Speed _defaultMaxSpeed = Speed.FromKilometersPerHour(25);
     private static readonly TimeSpan _defaultUpdateFrequency = TimeSpan.FromSeconds(10);
 
     private readonly DeviceClient _deviceClient;
@@ -43,7 +39,7 @@ public class ScooterWorker : BackgroundService
     {
         await SetInitialState(stoppingToken);
         await _deviceClient.SetDesiredPropertyUpdateCallbackAsync(
-            (t, _) => OnDesiredPropertiesUpdate(ScooterDesiredDto.FromJson(t.ToJson())),
+            (t, _) => OnDesiredPropertiesUpdate(ToDesiredState(t.ToJson())),
             null,
             stoppingToken);
         await foreach (var task in _scheduledTasks.Reader.ReadAllAsync(stoppingToken))
@@ -63,18 +59,16 @@ public class ScooterWorker : BackgroundService
         await _scheduledTasks.Writer.WriteAsync(task);
     }
 
-    private async Task OnDesiredPropertiesUpdate(ScooterDesiredDto desired)
+    private async Task OnDesiredPropertiesUpdate(ScooterDesiredState desired)
     {
         await ScheduleTask(async () =>
         {
-            var newLockedState = desired.Locked ?? true;
-            await _scooterDevice.MagneticBrakes.SetValue(newLockedState);
-            var newDesiredMaxSpeed = desired.MaxSpeed is null ? _defaultMaxSpeed : Speed.FromMetersPerSecond(desired.MaxSpeed.Value);
-            await _scooterDevice.MaxSpeedEnforcer.SetValue(newDesiredMaxSpeed);
+            await _scooterDevice.MagneticBrakes.SetValue(desired.Locked);
+            await _scooterDevice.MaxSpeedEnforcer.SetValue(desired.MaxSpeed);
             UpdateScooterState(s => s with
             {
-                Locked = newLockedState,
-                DesiredMaxSpeed = newDesiredMaxSpeed
+                Locked = desired.Locked,
+                DesiredMaxSpeed = desired.MaxSpeed
             });
         });
     }
@@ -89,21 +83,22 @@ public class ScooterWorker : BackgroundService
     private async Task SetInitialState(CancellationToken stoppingToken)
     {
         var twin = await _deviceClient.GetTwinAsync(stoppingToken);
-        var desired = ScooterDesiredDto.FromJson(twin.Properties.Desired.ToJson());
-        _timer = new Timer(_ => OnNewTimerTick(), null, TimeSpan.Zero, desired.UpdateFrequency ?? _defaultUpdateFrequency);
+        var desired = ToDesiredState(twin.Properties.Desired.ToJson());
+        _timer = new Timer(_ => OnNewTimerTick(), null, TimeSpan.Zero, desired.UpdateFrequency);
 
         var sensorsState = await _scooterDevice.ReadSensorsState();
 
         await OnDesiredPropertiesUpdate(desired);
 
         _scooterState = new ScooterState(
-            DesiredMaxSpeed: desired.MaxSpeed is null ? _defaultMaxSpeed : Speed.FromMetersPerSecond(desired.MaxSpeed.Value),
-            Locked: DefaultLockedState,
+            DesiredMaxSpeed: desired.MaxSpeed,
+            Locked: desired.Locked,
             BatteryLevel: sensorsState.BatteryLevel,
             Speed: sensorsState.Speed,
             Position: sensorsState.Position);
-
     }
+
+    private ScooterDesiredState ToDesiredState(string json) => ScooterDesiredDto.FromJson(json).ToDesiredState();
 
     private void UpdateScooterState(Func<ScooterState, ScooterState> updateAction)
     {
