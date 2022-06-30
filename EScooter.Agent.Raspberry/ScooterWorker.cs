@@ -7,12 +7,9 @@ namespace EScooter.Agent.Raspberry;
 
 public class ScooterWorker : BackgroundService
 {
-    private static readonly TimeSpan _defaultUpdateFrequency = TimeSpan.FromSeconds(10);
-
     private readonly DeviceClient _deviceClient;
     private readonly Channel<Func<Task>> _scheduledTasks;
     private readonly ScooterDevice _scooterDevice;
-    private ScooterState? _scooterState;
     private Timer? _timer;
 
     public ScooterWorker(IConfiguration configuration, ScooterDevice scooterDevice)
@@ -65,11 +62,6 @@ public class ScooterWorker : BackgroundService
         {
             await _scooterDevice.MagneticBrakes.SetValue(desired.Locked);
             await _scooterDevice.MaxSpeedEnforcer.SetValue(desired.MaxSpeed);
-            UpdateScooterState(s => s with
-            {
-                Locked = desired.Locked,
-                DesiredMaxSpeed = desired.MaxSpeed
-            });
         });
     }
 
@@ -89,21 +81,9 @@ public class ScooterWorker : BackgroundService
         var sensorsState = await _scooterDevice.ReadSensorsState();
 
         await OnDesiredPropertiesUpdate(desired);
-
-        _scooterState = new ScooterState(
-            DesiredMaxSpeed: desired.MaxSpeed,
-            Locked: desired.Locked,
-            BatteryLevel: sensorsState.BatteryLevel,
-            Speed: sensorsState.Speed,
-            Position: sensorsState.Position);
     }
 
     private ScooterDesiredState ToDesiredState(string json) => ScooterDesiredDto.FromJson(json).ToDesiredState();
-
-    private void UpdateScooterState(Func<ScooterState, ScooterState> updateAction)
-    {
-        _scooterState = updateAction(_scooterState!);
-    }
 
     public override void Dispose()
     {
