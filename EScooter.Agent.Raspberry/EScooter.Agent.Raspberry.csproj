@@ -12,6 +12,7 @@
     <PackageReference Include="Iot.Device.Bindings" Version="2.1.0" />
     <PackageReference Include="Microsoft.Azure.Devices.Client" Version="1.41.0" />
     <PackageReference Include="System.Device.Gpio" Version="2.1.0" />
+    <PackageReference Include="Geolocation" Version="1.2.1" />
   </ItemGroup>
 
   <PropertyGroup>
