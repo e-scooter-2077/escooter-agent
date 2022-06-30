@@ -1,8 +1,9 @@
-﻿using UnitsNet;
+﻿using EScooter.Agent.Raspberry.Model;
+using UnitsNet;
 
 namespace EScooter.Agent.Raspberry.IO.Sensors.Mock;
 
-public class MockSpeedometer : MockSensorBase<Speed>
+public class MockSpeedometer : ISensor<Speed>
 {
-    protected override Speed ReadValueInternal() => Speed.FromKilometersPerHour(20);
+    public Speed ReadValue() => Speed.FromKilometersPerHour(20);
 }

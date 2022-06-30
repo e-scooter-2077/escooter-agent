@@ -1,8 +1,9 @@
-﻿using Geolocation;
+﻿using EScooter.Agent.Raspberry.Model;
+using Geolocation;
 
 namespace EScooter.Agent.Raspberry.IO.Sensors.Mock;
 
-public class MockGpsSensor : MockSensorBase<Coordinate>
+public class MockGpsSensor : ISensor<Coordinate>
 {
-    protected override Coordinate ReadValueInternal() => new Coordinate(44.143043, 12.247474);
+    public Coordinate ReadValue() => new Coordinate(44.143043, 12.247474);
 }

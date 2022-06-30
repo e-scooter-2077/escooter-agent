@@ -44,14 +44,18 @@ public class ScooterWorker : BackgroundService
 
     private async Task OnDesiredPropertiesUpdate(ScooterDesiredState desired)
     {
-        await ScheduleTask(() => _scooterDevice.SetDesiredState(desired));
+        await ScheduleTask(async () =>
+        {
+            _scooterDevice.SetDesiredState(desired);
+            await _iotHubScooter.SendReportedState(_scooterDevice.CurrentReportedState);
+        });
     }
 
     private async void OnNewTimerTick()
     {
         await ScheduleTask(async () =>
         {
-            var sensorsState = await _scooterDevice.ReadSensorsState();
+            var sensorsState = _scooterDevice.UpdateSensorsState();
             await _iotHubScooter.SendSensorsTelemetry(sensorsState);
         });
     }
@@ -61,7 +65,7 @@ public class ScooterWorker : BackgroundService
         var desired = await _iotHubScooter.GetDesiredState(stoppingToken);
         _timer = new Timer(_ => OnNewTimerTick(), null, TimeSpan.Zero, desired.UpdateFrequency);
 
-        var sensorsState = await _scooterDevice.ReadSensorsState();
+        var sensorsState = _scooterDevice.UpdateSensorsState();
 
         await OnDesiredPropertiesUpdate(desired);
     }

@@ -3,31 +3,104 @@ using UnitsNet;
 
 namespace EScooter.Agent.Raspberry.Model;
 
-public record ScooterDevice(ISensor<Speed> Speedometer, ISensor<Coordinate> Gps, ISensor<Fraction> Battery, IActuator<bool> MagneticBrakes, IActuator<Speed> MaxSpeedEnforcer)
+public class ScooterDevice
 {
-    public async Task Setup()
+    private static readonly Fraction _standbyThreshold = Fraction.FromPercentage(10);
+    private static readonly Speed _standbyMaxSpeed = Speed.FromKilometersPerHour(15);
+
+    public ScooterDevice(
+        ISensor<Speed> speedometer,
+        ISensor<Coordinate> gps,
+        ISensor<Fraction> battery,
+        IActuator<bool> magneticBrakes,
+        IActuator<Speed> maxSpeedEnforcer,
+        ScooterDesiredState initialDesiredState)
     {
-        await Speedometer.Setup();
-        await Gps.Setup();
-        await Battery.Setup();
-        await MagneticBrakes.Setup();
-        await MaxSpeedEnforcer.Setup();
+        Speedometer = speedometer;
+        Gps = gps;
+        Battery = battery;
+        MagneticBrakes = magneticBrakes;
+        MaxSpeedEnforcer = maxSpeedEnforcer;
+        CurrentDesiredState = initialDesiredState;
+        CurrentReportedState = new(
+            Locked: true,
+            Standby: false,
+            MaxSpeed: Speed.FromKilometersPerHour(25),
+            UpdateFrequency: TimeSpan.FromSeconds(10));
+        ManageStandbyPolicies(Battery.ReadValue());
+        SetDesiredState(initialDesiredState);
     }
 
-    public async Task<ScooterSensorsState> ReadSensorsState()
+    public ISensor<Speed> Speedometer { get; }
+
+    public ISensor<Coordinate> Gps { get; }
+
+    public ISensor<Fraction> Battery { get; }
+
+    public IActuator<bool> MagneticBrakes { get; }
+
+    public IActuator<Speed> MaxSpeedEnforcer { get; }
+
+    public ScooterReportedState CurrentReportedState { get; private set; }
+
+    public ScooterDesiredState CurrentDesiredState { get; private set; }
+
+    public ScooterSensorsState UpdateSensorsState()
     {
-        var battery = await Battery.ReadValue();
-        var position = await Gps.ReadValue();
-        var speed = await Speedometer.ReadValue();
+        var battery = Battery.ReadValue();
+        var position = Gps.ReadValue();
+        var speed = Speedometer.ReadValue();
+        ManageStandbyPolicies(battery);
 
         return new ScooterSensorsState(battery, speed, position);
     }
 
-    public async Task SetDesiredState(ScooterDesiredState desiredState)
+    private void ManageStandbyPolicies(Fraction battery)
     {
-        await MagneticBrakes.SetValue(desiredState.Locked);
-        await MaxSpeedEnforcer.SetValue(desiredState.MaxSpeed);
+        void SetStandby(bool standby)
+        {
+            ApplyDesiredMaxSpeed(standby ? _standbyMaxSpeed : CurrentDesiredState.MaxSpeed);
+            CurrentReportedState = CurrentReportedState with
+            {
+                Standby = standby
+            };
+        }
+        if (battery <= _standbyThreshold && !CurrentReportedState.Standby)
+        {
+            SetStandby(true);
+        }
+        else if (battery > _standbyThreshold && CurrentReportedState.Standby)
+        {
+            SetStandby(false);
+        }
+    }
+
+    public void SetDesiredState(ScooterDesiredState desiredState)
+    {
+        CurrentDesiredState = desiredState;
+        ApplyDesiredLockedState(desiredState.Locked);
+        if (CurrentReportedState.Standby)
+        {
+            return;
+        }
+        ApplyDesiredMaxSpeed(desiredState.MaxSpeed);
+    }
+
+    private void ApplyDesiredLockedState(bool desiredLockedState)
+    {
+        MagneticBrakes.SetValue(desiredLockedState);
+        CurrentReportedState = CurrentReportedState with
+        {
+            Locked = desiredLockedState
+        };
+    }
+
+    private void ApplyDesiredMaxSpeed(Speed desiredMaxSpeed)
+    {
+        MaxSpeedEnforcer.SetValue(desiredMaxSpeed);
+        CurrentReportedState = CurrentReportedState with
+        {
+            MaxSpeed = desiredMaxSpeed
+        };
     }
 }
-
-public record ScooterSensorsState(Fraction BatteryLevel, Speed Speed, Coordinate Position);

@@ -2,7 +2,5 @@
 
 public interface ISensor<T>
 {
-    Task Setup();
-
-    Task<T> ReadValue();
+    T ReadValue();
 }

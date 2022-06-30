@@ -1,6 +1,7 @@
 ﻿using EScooter.Agent.Raspberry.Dto;
 using EScooter.Agent.Raspberry.Model;
 using Microsoft.Azure.Devices.Client;
+using Microsoft.Azure.Devices.Shared;
 using Newtonsoft.Json;
 using System.Text;
 
@@ -38,6 +39,12 @@ public class IotHubScooterWrapper : IDisposable
     {
         using var message = CreateMessageFromJson(JsonConvert.SerializeObject(ScooterTelemetryDto.FromSensorsState(sensorsState)));
         await _deviceClient.SendEventAsync(message);
+    }
+
+    public Task SendReportedState(ScooterReportedState state)
+    {
+        var twinCollection = new TwinCollection(JsonConvert.SerializeObject(ScooterReportedDto.FromReportedState(state)));
+        return _deviceClient.UpdateReportedPropertiesAsync(twinCollection);
     }
 
     private Message CreateMessageFromJson(string jsonSerializedTelemetry)

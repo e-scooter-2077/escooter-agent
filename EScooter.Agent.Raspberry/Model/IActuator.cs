@@ -2,7 +2,5 @@
 
 public interface IActuator<T>
 {
-    Task Setup();
-
-    Task SetValue(T value);
+    void SetValue(T value);
 }

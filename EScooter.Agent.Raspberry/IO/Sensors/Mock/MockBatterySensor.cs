@@ -2,7 +2,7 @@
 
 namespace EScooter.Agent.Raspberry.IO.Sensors.Mock;
 
-public class MockBatterySensor : MockSensorBase<Fraction>
+public class MockBatterySensor : ISensor<Fraction>
 {
-    protected override Fraction ReadValueInternal() => Fraction.FromPercentage(100);
+    public Fraction ReadValue() => Fraction.FromPercentage(100);
 }

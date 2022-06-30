@@ -12,9 +12,8 @@ public class GpioMagneticBrake : IActuator<bool>
     {
         _pin = pin;
         _gpioController = gpioController;
+        _gpioController.OpenPin(_pin, PinMode.Output);
     }
 
-    public Task Setup() => Task.Run(() => _gpioController.OpenPin(_pin, PinMode.Output));
-
-    public Task SetValue(bool value) => Task.Run(() => _gpioController.Write(_pin, value ? PinValue.High : PinValue.Low));
+    public void SetValue(bool value) => _gpioController.Write(_pin, value ? PinValue.High : PinValue.Low);
 }

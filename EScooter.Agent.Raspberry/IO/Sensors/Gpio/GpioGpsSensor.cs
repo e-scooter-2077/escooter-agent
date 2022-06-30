@@ -16,10 +16,6 @@ public class GpioGpsSensor : ISensor<Coordinate>, IDisposable
     public GpioGpsSensor(string serialPortName)
     {
         _serialPort = new SerialPort(serialPortName);
-    }
-
-    public Task Setup()
-    {
         _serialPort.Open();
 
         var stream = _serialPort.BaseStream;
@@ -27,8 +23,6 @@ public class GpioGpsSensor : ISensor<Coordinate>, IDisposable
         var parser = new NmeaParser("GPS", stream, stream);
         parser.OnNewPosition += OnNewPosition;
         parser.StartDecode();
-
-        return Task.CompletedTask;
     }
 
     private void OnNewPosition(GeographicPosition position, Angle? track, Speed? speed)
@@ -39,11 +33,11 @@ public class GpioGpsSensor : ISensor<Coordinate>, IDisposable
         }
     }
 
-    public Task<Coordinate> ReadValue()
+    public Coordinate ReadValue()
     {
         lock (this)
         {
-            return Task.FromResult(_currentPosition);
+            return _currentPosition;
         }
     }
 

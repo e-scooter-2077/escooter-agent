@@ -16,9 +16,7 @@ public abstract class BaseMcp3xxxSensor<T> : ISensor<T>
         _mcpChannel = mcpChannel;
     }
 
-    public Task Setup() => Task.CompletedTask;
-
-    public Task<T> ReadValue() => Task.Run(() => ConvertRawValue(Fraction.FromFraction(_mcp.Read(_mcpChannel) / (double)MaxAdcValue)));
+    public T ReadValue() => ConvertRawValue(Fraction.FromFraction(_mcp.Read(_mcpChannel) / (double)MaxAdcValue));
 
     protected abstract T ConvertRawValue(Fraction fraction);
 }
