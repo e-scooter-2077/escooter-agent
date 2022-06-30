@@ -1,24 +1,32 @@
+using EScooter.Agent.Raspberry.Dto;
 using EScooter.Agent.Raspberry.Model;
 using Microsoft.Azure.Devices.Client;
-using Microsoft.Azure.Devices.Shared;
 using System.Threading.Channels;
+using UnitsNet;
 
 namespace EScooter.Agent.Raspberry;
 
 public class ScooterWorker : BackgroundService
 {
+    private const bool DefaultLockedState = false;
+
+    private static readonly Speed _defaultMaxSpeed = Speed.FromKilometersPerHour(25);
+    private static readonly TimeSpan _defaultUpdateFrequency = TimeSpan.FromSeconds(10);
+
     private readonly DeviceClient _deviceClient;
     private readonly Channel<Func<Task>> _scheduledTasks;
-    private Scooter? _scooter;
+    private readonly ScooterDevice _scooterDevice;
+    private ScooterState? _scooterState;
     private Timer? _timer;
 
-    public ScooterWorker(IConfiguration configuration)
+    public ScooterWorker(IConfiguration configuration, ScooterDevice scooterDevice)
     {
         _deviceClient = CreateClient(configuration);
         _scheduledTasks = Channel.CreateUnbounded<Func<Task>>(new UnboundedChannelOptions
         {
             SingleReader = true
         });
+        _scooterDevice = scooterDevice;
     }
 
     private DeviceClient CreateClient(IConfiguration configuration)
@@ -33,13 +41,21 @@ public class ScooterWorker : BackgroundService
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        _scooter = new Scooter(await GetInitialState());
-        _timer = new Timer(_ => OnNewTimerTick(), null, TimeSpan.Zero, _scooter.CurrentState.UpdateFrequency.ToTimeSpan());
-        await _deviceClient.SetDesiredPropertyUpdateCallbackAsync((t, _) => OnDesiredPropertiesUpdate(t), null, stoppingToken);
+        await SetInitialState(stoppingToken);
+        await _deviceClient.SetDesiredPropertyUpdateCallbackAsync(
+            (t, _) => OnDesiredPropertiesUpdate(ScooterDesiredDto.FromJson(t.ToJson())),
+            null,
+            stoppingToken);
         await foreach (var task in _scheduledTasks.Reader.ReadAllAsync(stoppingToken))
         {
             await task();
         }
+    }
+
+    public override async Task StopAsync(CancellationToken cancellationToken)
+    {
+        _timer?.Change(Timeout.Infinite, 0);
+        await base.StopAsync(cancellationToken);
     }
 
     private async Task ScheduleTask(Func<Task> task)
@@ -47,14 +63,14 @@ public class ScooterWorker : BackgroundService
         await _scheduledTasks.Writer.WriteAsync(task);
     }
 
-    private async Task OnDesiredPropertiesUpdate(TwinCollection desiredProperties)
+    private async Task OnDesiredPropertiesUpdate(ScooterDesiredDto desired)
     {
         await ScheduleTask(async () =>
         {
-            _scooter.UpdateState(s => s with
+            UpdateScooterState(s => s with
             {
-                
-            })
+
+            });
         });
     }
 
@@ -65,13 +81,32 @@ public class ScooterWorker : BackgroundService
         });
     }
 
-    private async Task<ScooterState> GetInitialState()
+    private async Task SetInitialState(CancellationToken stoppingToken)
     {
+        var twin = await _deviceClient.GetTwinAsync(stoppingToken);
+        var desired = ScooterDesiredDto.FromJson(twin.Properties.Desired.ToJson());
+        _timer = new Timer(_ => OnNewTimerTick(), null, TimeSpan.Zero, desired.UpdateFrequency ?? _defaultUpdateFrequency);
 
+        var sensorsState = await _scooterDevice.ReadSensorsState();
+
+        _scooterState = new ScooterState(
+            DesiredMaxSpeed: desired.MaxSpeed is null ? _defaultMaxSpeed : Speed.FromMetersPerSecond(desired.MaxSpeed.Value),
+            Locked: DefaultLockedState,
+            BatteryLevel: sensorsState.BatteryLevel,
+            Speed: sensorsState.Speed,
+            Position: sensorsState.Position);
+
+        await OnDesiredPropertiesUpdate(desired);
+    }
+
+    private void UpdateScooterState(Func<ScooterState, ScooterState> updateAction)
+    {
+        _scooterState = updateAction(_scooterState!);
     }
 
     public override void Dispose()
     {
+        _timer?.Dispose();
         _deviceClient.Dispose();
         base.Dispose();
     }
