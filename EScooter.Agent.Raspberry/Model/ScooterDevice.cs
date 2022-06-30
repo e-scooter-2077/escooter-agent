@@ -7,23 +7,26 @@ public record ScooterDevice(ISensor<Speed> Speedometer, ISensor<Coordinate> Gps,
 {
     public async Task Setup()
     {
-        await Task.WhenAll(
-            Speedometer.Setup(),
-            Gps.Setup(),
-            Battery.Setup(),
-            MagneticBrakes.Setup(),
-            MaxSpeedEnforcer.Setup());
+        await Speedometer.Setup();
+        await Gps.Setup();
+        await Battery.Setup();
+        await MagneticBrakes.Setup();
+        await MaxSpeedEnforcer.Setup();
     }
 
     public async Task<ScooterSensorsState> ReadSensorsState()
     {
-        var batteryTask = Battery.ReadValue();
-        var positionTask = Gps.ReadValue();
-        var speedTask = Speedometer.ReadValue();
+        var battery = await Battery.ReadValue();
+        var position = await Gps.ReadValue();
+        var speed = await Speedometer.ReadValue();
 
-        await Task.WhenAll(batteryTask, positionTask, speedTask);
+        return new ScooterSensorsState(battery, speed, position);
+    }
 
-        return new ScooterSensorsState(batteryTask.Result, speedTask.Result, positionTask.Result);
+    public async Task SetDesiredState(ScooterDesiredState desiredState)
+    {
+        await MagneticBrakes.SetValue(desiredState.Locked);
+        await MaxSpeedEnforcer.SetValue(desiredState.MaxSpeed);
     }
 }
 

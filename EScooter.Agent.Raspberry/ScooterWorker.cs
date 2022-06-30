@@ -58,11 +58,7 @@ public class ScooterWorker : BackgroundService
 
     private async Task OnDesiredPropertiesUpdate(ScooterDesiredState desired)
     {
-        await ScheduleTask(async () =>
-        {
-            await _scooterDevice.MagneticBrakes.SetValue(desired.Locked);
-            await _scooterDevice.MaxSpeedEnforcer.SetValue(desired.MaxSpeed);
-        });
+        await ScheduleTask(() => _scooterDevice.SetDesiredState(desired));
     }
 
     private async void OnNewTimerTick()
