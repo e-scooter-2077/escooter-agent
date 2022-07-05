@@ -67,10 +67,11 @@ public class ScooterWorker : BackgroundService
     {
         var desired = await _iotHubScooter.GetDesiredState(stoppingToken);
         _scooter = new Scooter(_scooterHardware, desired);
-        _scooter.ReportedStateChanged += OnReportedStateChanged;
-        _scooter.SensorsStateChanged += OnSensorsStateChanged;
+        Scooter.ReportedStateChanged += OnReportedStateChanged;
+        Scooter.SensorsStateChanged += OnSensorsStateChanged;
 
         Scooter.UpdateSensorsState();
+        await _iotHubScooter.SendReportedState(Scooter.CurrentReportedState);
 
         _timer = new Timer(_ => OnNewTimerTick(), null, TimeSpan.Zero, desired.UpdateFrequency);
     }
