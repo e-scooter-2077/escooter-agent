@@ -1,58 +1,37 @@
-﻿using Geolocation;
-using UnitsNet;
+﻿using UnitsNet;
 
 namespace EScooter.Agent.Raspberry.Model;
 
-public class ScooterDevice
+public class Scooter
 {
     private static readonly Fraction _standbyThreshold = Fraction.FromPercentage(10);
     private static readonly Speed _standbyMaxSpeed = Speed.FromKilometersPerHour(15);
+    private readonly ScooterHardware _hardware;
 
-    public ScooterDevice(
-        ISensor<Speed> speedometer,
-        ISensor<Coordinate> gps,
-        ISensor<Fraction> battery,
-        IActuator<bool> magneticBrakes,
-        IActuator<Speed> maxSpeedEnforcer,
-        ScooterDesiredState initialDesiredState)
+    public Scooter(ScooterHardware hardware, ScooterDesiredState initialDesiredState)
     {
-        Speedometer = speedometer;
-        Gps = gps;
-        Battery = battery;
-        MagneticBrakes = magneticBrakes;
-        MaxSpeedEnforcer = maxSpeedEnforcer;
+        _hardware = hardware;
         CurrentDesiredState = initialDesiredState;
         CurrentReportedState = new(
             Locked: true,
             Standby: false,
             MaxSpeed: Speed.FromKilometersPerHour(25),
             UpdateFrequency: TimeSpan.FromSeconds(10));
-        ManageStandbyPolicies(Battery.ReadValue());
-        SetDesiredState(initialDesiredState);
     }
-
-    public ISensor<Speed> Speedometer { get; }
-
-    public ISensor<Coordinate> Gps { get; }
-
-    public ISensor<Fraction> Battery { get; }
-
-    public IActuator<bool> MagneticBrakes { get; }
-
-    public IActuator<Speed> MaxSpeedEnforcer { get; }
 
     public ScooterReportedState CurrentReportedState { get; private set; }
 
     public ScooterDesiredState CurrentDesiredState { get; private set; }
 
-    public ScooterSensorsState UpdateSensorsState()
+    public void UpdateSensorsState()
     {
-        var battery = Battery.ReadValue();
-        var position = Gps.ReadValue();
-        var speed = Speedometer.ReadValue();
-        ManageStandbyPolicies(battery);
+        var battery = _hardware.Battery.ReadValue();
+        var position = _hardware.Gps.ReadValue();
+        var speed = _hardware.Speedometer.ReadValue();
 
-        return new ScooterSensorsState(battery, speed, position);
+        TrackReportedChanges(() => ManageStandbyPolicies(battery));
+
+        SensorsStateChanged?.Invoke(new ScooterSensorsState(battery, speed, position));
     }
 
     private void ManageStandbyPolicies(Fraction battery)
@@ -78,17 +57,20 @@ public class ScooterDevice
     public void SetDesiredState(ScooterDesiredState desiredState)
     {
         CurrentDesiredState = desiredState;
-        ApplyDesiredLockedState(desiredState.Locked);
-        if (CurrentReportedState.Standby)
+        TrackReportedChanges(() =>
         {
-            return;
-        }
-        ApplyDesiredMaxSpeed(desiredState.MaxSpeed);
+            ApplyDesiredLockedState(desiredState.Locked);
+            if (CurrentReportedState.Standby)
+            {
+                return;
+            }
+            ApplyDesiredMaxSpeed(desiredState.MaxSpeed);
+        });
     }
 
     private void ApplyDesiredLockedState(bool desiredLockedState)
     {
-        MagneticBrakes.SetValue(desiredLockedState);
+        _hardware.MagneticBrakes.SetValue(desiredLockedState);
         CurrentReportedState = CurrentReportedState with
         {
             Locked = desiredLockedState
@@ -97,10 +79,26 @@ public class ScooterDevice
 
     private void ApplyDesiredMaxSpeed(Speed desiredMaxSpeed)
     {
-        MaxSpeedEnforcer.SetValue(desiredMaxSpeed);
+        _hardware.MaxSpeedEnforcer.SetValue(desiredMaxSpeed);
         CurrentReportedState = CurrentReportedState with
         {
             MaxSpeed = desiredMaxSpeed
         };
     }
+
+    private void TrackReportedChanges(Action update)
+    {
+        var oldState = CurrentReportedState;
+
+        update();
+
+        if (CurrentReportedState != oldState)
+        {
+            ReportedStateChanged?.Invoke(CurrentReportedState);
+        }
+    }
+
+    public event Action<ScooterReportedState>? ReportedStateChanged;
+
+    public event Action<ScooterSensorsState>? SensorsStateChanged;
 }

@@ -11,19 +11,10 @@ public class IotHubScooterWrapper : IDisposable
 {
     private readonly DeviceClient _deviceClient;
 
-    private IotHubScooterWrapper(DeviceClient deviceClient)
+    public IotHubScooterWrapper(IotHubConfiguration configuration)
     {
-        _deviceClient = deviceClient;
-    }
-
-    public static IotHubScooterWrapper CreateFromConfiguration(IConfiguration configuration)
-    {
-        var scooterId = configuration["Scooter:Id"];
-        var key = configuration["Scooter:SymmetricKey"];
-        var authMethod = new DeviceAuthenticationWithRegistrySymmetricKey(scooterId, key);
-
-        var hostName = configuration["IoTHubHostName"];
-        return new(DeviceClient.Create(hostName, authMethod, TransportType.Mqtt));
+        var authMethod = new DeviceAuthenticationWithRegistrySymmetricKey(configuration.ScooterId, configuration.SymmetricKey);
+        _deviceClient = DeviceClient.Create(configuration.HostName, authMethod, TransportType.Mqtt);
     }
 
     public async Task RegisterForDesiredPropertyUpdates(Func<ScooterDesiredState, Task> callback, CancellationToken stoppingToken = default) =>
