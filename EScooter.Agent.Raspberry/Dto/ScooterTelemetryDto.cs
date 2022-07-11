@@ -9,7 +9,7 @@ public record ScooterTelemetryDto(
     double? Longitude)
 {
     public static ScooterTelemetryDto FromSensorsState(ScooterSensorsState sensorsState) => new(
-        sensorsState.BatteryLevel.Base1Value,
+        sensorsState.BatteryLevel.Base100ValueRounded,
         sensorsState.Speed.MetersPerSecond,
         sensorsState.Position.Latitude,
         sensorsState.Position.Longitude);
