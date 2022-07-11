@@ -4,5 +4,5 @@ namespace EScooter.Agent.Raspberry.IO.Sensors.Mock;
 
 public class MockBatterySensor : ISensor<Fraction>
 {
-    public Fraction ReadValue() => Fraction.FromPercentage(100);
+    public Fraction ReadValue() => Fraction.FromPercentage(40);
 }

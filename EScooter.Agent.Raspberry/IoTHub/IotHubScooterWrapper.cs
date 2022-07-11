@@ -3,6 +3,7 @@ using EScooter.Agent.Raspberry.Model;
 using Microsoft.Azure.Devices.Client;
 using Microsoft.Azure.Devices.Shared;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Serialization;
 using System.Text;
 
 namespace EScooter.Agent.Raspberry.IotHub;
@@ -14,6 +15,10 @@ public class IotHubScooterWrapper : IDisposable
     public IotHubScooterWrapper(string connectionString)
     {
         _deviceClient = DeviceClient.CreateFromConnectionString(connectionString, TransportType.Mqtt);
+        JsonConvert.DefaultSettings = () => new JsonSerializerSettings
+        {
+            ContractResolver = new CamelCasePropertyNamesContractResolver()
+        };
     }
 
     public async Task RegisterForDesiredPropertyUpdates(Func<ScooterDesiredState, Task> callback, CancellationToken stoppingToken = default) =>

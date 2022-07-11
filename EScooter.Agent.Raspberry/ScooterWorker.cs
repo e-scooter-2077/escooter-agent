@@ -9,10 +9,11 @@ public class ScooterWorker : BackgroundService
     private readonly Channel<Func<Task>> _scheduledTasks;
     private readonly ScooterHardware _scooterHardware;
     private readonly IotHubScooterWrapper _iotHubScooter;
+    private readonly ILogger<ScooterWorker> _logger;
     private Scooter? _scooter;
     private Timer? _timer;
 
-    public ScooterWorker(ScooterHardware scooterHardware, IotHubScooterWrapper iotHubScooter)
+    public ScooterWorker(ScooterHardware scooterHardware, IotHubScooterWrapper iotHubScooter, ILogger<ScooterWorker> logger)
     {
         _scheduledTasks = Channel.CreateUnbounded<Func<Task>>(new UnboundedChannelOptions
         {
@@ -20,6 +21,7 @@ public class ScooterWorker : BackgroundService
         });
         _scooterHardware = scooterHardware;
         _iotHubScooter = iotHubScooter;
+        _logger = logger;
     }
 
     private Scooter Scooter => _scooter!;
@@ -71,16 +73,28 @@ public class ScooterWorker : BackgroundService
         Scooter.SensorsStateChanged += OnSensorsStateChanged;
 
         Scooter.UpdateSensorsState();
-        await _iotHubScooter.SendReportedState(Scooter.CurrentReportedState);
+        await SendReportedState(Scooter.CurrentReportedState);
 
         _timer = new Timer(_ => OnNewTimerTick(), null, TimeSpan.Zero, desired.UpdateFrequency);
     }
 
     private async void OnReportedStateChanged(ScooterReportedState reported) =>
-        await ScheduleTask(() => _iotHubScooter.SendReportedState(reported));
+        await ScheduleTask(() => SendReportedState(reported));
+
+    private async Task SendReportedState(ScooterReportedState reported)
+    {
+        await _iotHubScooter.SendReportedState(reported);
+        _logger.LogInformation("Sent reported state");
+    }
 
     private async void OnSensorsStateChanged(ScooterSensorsState sensorsState) =>
-        await ScheduleTask(() => _iotHubScooter.SendSensorsTelemetry(sensorsState));
+        await ScheduleTask(() => SendSensorsTelemetry(sensorsState));
+
+    private async Task SendSensorsTelemetry(ScooterSensorsState sensorsState)
+    {
+        await _iotHubScooter.SendSensorsTelemetry(sensorsState);
+        _logger.LogInformation("Send telemetry");
+    }
 
     public override void Dispose()
     {
