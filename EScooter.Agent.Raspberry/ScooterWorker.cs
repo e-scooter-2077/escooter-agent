@@ -93,7 +93,7 @@ public class ScooterWorker : BackgroundService
     private async Task SendSensorsTelemetry(ScooterSensorsState sensorsState)
     {
         await _iotHubScooter.SendSensorsTelemetry(sensorsState);
-        _logger.LogInformation("Send telemetry");
+        _logger.LogInformation("Sent telemetry");
     }
 
     public override void Dispose()
