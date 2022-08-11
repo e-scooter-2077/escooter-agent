@@ -17,6 +17,10 @@ public class LcdDisplay
     public LcdDisplay(Lcd1602 lcd)
     {
         _lcd = lcd;
+
+        _lcd.BlinkingCursorVisible = false;
+        _lcd.UnderlineCursorVisible = false;
+        _lcd.Clear();
     }
 
     public void SetMaxSpeed(Speed speed)
