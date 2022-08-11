@@ -40,7 +40,7 @@ public class LcdDisplay
     private void UpdateSpeedDisplay()
     {
         _lcd.SetCursorPosition(0, SpeedRow);
-        _lcd.Write($"{_roundedCurrentSpeed,2}/{_roundedMaxSpeed,2}km/h");
+        _lcd.Write($"{_roundedCurrentSpeed,2} / {_roundedMaxSpeed,2} km/h");
     }
 
     public void SetBatteryLevel(Fraction batteryLevel)
