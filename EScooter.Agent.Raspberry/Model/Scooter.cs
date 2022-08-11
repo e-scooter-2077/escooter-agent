@@ -11,12 +11,13 @@ public class Scooter
     public Scooter(ScooterHardware hardware, ScooterDesiredState initialDesiredState)
     {
         _hardware = hardware;
-        CurrentDesiredState = initialDesiredState;
         CurrentReportedState = new(
             Locked: true,
             Standby: false,
             MaxSpeed: Speed.FromKilometersPerHour(25),
             UpdateFrequency: TimeSpan.FromSeconds(10));
+        CurrentDesiredState = initialDesiredState;
+        SetDesiredState(initialDesiredState);
         CurrentSensorsState = ReadAllSensors();
     }
 
