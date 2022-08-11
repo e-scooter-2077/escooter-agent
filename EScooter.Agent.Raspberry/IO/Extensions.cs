@@ -40,7 +40,7 @@ public static class Extensions
         services.AddSingleton(p => LcdInterface.CreateGpio(
             registerSelectPin: configuration.GetValue<int>("Lcd:RegisterSelectPin"),
             enablePin: configuration.GetValue<int>("Lcd:EnablePin"),
-            dataPins: configuration.GetValue<int[]>("Lcd:DataPins"),
+            dataPins: configuration.GetSection("Lcd:DataPins").Get<int[]>(),
             controller: p.GetRequiredService<GpioController>(),
             shouldDispose: false));
         services.AddSingleton<Lcd1602>();
