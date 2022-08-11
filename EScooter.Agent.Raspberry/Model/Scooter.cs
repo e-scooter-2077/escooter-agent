@@ -29,6 +29,9 @@ public class Scooter
     public void UpdateSensorsState()
     {
         CurrentSensorsState = ReadAllSensors();
+        _hardware.BatteryDisplay.SetValue(CurrentSensorsState.BatteryLevel);
+        _hardware.SpeedDisplay.SetValue(CurrentSensorsState.Speed);
+
         TrackReportedChanges(() => ManageStandbyPolicies(CurrentSensorsState.BatteryLevel));
         SensorsStateChanged?.Invoke(CurrentSensorsState);
     }
