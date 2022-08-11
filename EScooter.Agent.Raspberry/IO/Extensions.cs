@@ -26,7 +26,7 @@ public static class Extensions
 
     public static IServiceCollection AddGpioHardware(this IServiceCollection services, IConfiguration configuration)
     {
-        services.AddSingleton(_ => new GpioController());
+        services.AddSingleton(_ => new GpioController(PinNumberingScheme.Board));
 
         // TODO: when we have an ADC, use Gpio implementations instead of the Mock ones.
         services.AddSingleton<ISpeedometer, MockSpeedometer>();
