@@ -2,7 +2,7 @@
 
 namespace EScooter.Agent.Raspberry.IO.Actuators.Mock;
 
-public class MockMagneticBrake : IActuator<bool>
+public class MockMagneticBrake : IMagneticBrake
 {
     private bool _last = false;
 

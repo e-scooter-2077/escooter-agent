@@ -4,7 +4,7 @@ using UnitsNet;
 
 namespace EScooter.Agent.Raspberry.IO.Sensors.Gpio;
 
-public class GpioSpeedometer : BaseMcp3xxxSensor<Speed>
+public class GpioSpeedometer : BaseMcp3xxxSensor<Speed>, ISpeedometer
 {
     private static readonly Speed _theoreticalMaxSpeed = Speed.FromKilometersPerHour(40);
 

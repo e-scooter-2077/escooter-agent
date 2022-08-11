@@ -3,7 +3,7 @@ using Geolocation;
 
 namespace EScooter.Agent.Raspberry.IO.Sensors.Mock;
 
-public class MockGpsSensor : ISensor<Coordinate>
+public class MockGpsSensor : IGpsSensor
 {
-    public Coordinate ReadValue() => new Coordinate(44.143043, 12.247474);
+    public Coordinate ReadValue() => new(44.143043, 12.247474);
 }

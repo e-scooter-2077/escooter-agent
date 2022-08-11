@@ -7,7 +7,7 @@ using UnitsNet;
 
 namespace EScooter.Agent.Raspberry.IO.Sensors.Gpio;
 
-public class GpioGpsSensor : ISensor<Coordinate>, IDisposable
+public class GpioGpsSensor : IGpsSensor, IDisposable
 {
     private readonly SerialPort _serialPort;
 
@@ -44,5 +44,6 @@ public class GpioGpsSensor : ISensor<Coordinate>, IDisposable
     public void Dispose()
     {
         _serialPort.Dispose();
+        GC.SuppressFinalize(this);
     }
 }

@@ -17,21 +17,29 @@ public class Scooter
             Standby: false,
             MaxSpeed: Speed.FromKilometersPerHour(25),
             UpdateFrequency: TimeSpan.FromSeconds(10));
+        CurrentSensorsState = ReadAllSensors();
     }
 
     public ScooterReportedState CurrentReportedState { get; private set; }
 
     public ScooterDesiredState CurrentDesiredState { get; private set; }
 
+    public ScooterSensorsState CurrentSensorsState { get; private set; }
+
     public void UpdateSensorsState()
+    {
+        CurrentSensorsState = ReadAllSensors();
+        TrackReportedChanges(() => ManageStandbyPolicies(CurrentSensorsState.BatteryLevel));
+        SensorsStateChanged?.Invoke(CurrentSensorsState);
+    }
+
+    private ScooterSensorsState ReadAllSensors()
     {
         var battery = _hardware.Battery.ReadValue();
         var position = _hardware.Gps.ReadValue();
         var speed = _hardware.Speedometer.ReadValue();
 
-        TrackReportedChanges(() => ManageStandbyPolicies(battery));
-
-        SensorsStateChanged?.Invoke(new ScooterSensorsState(battery, speed, position));
+        return new ScooterSensorsState(battery, speed, position);
     }
 
     private void ManageStandbyPolicies(Fraction battery)

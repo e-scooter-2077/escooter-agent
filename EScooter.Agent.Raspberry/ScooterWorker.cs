@@ -99,6 +99,7 @@ public class ScooterWorker : BackgroundService
     public override void Dispose()
     {
         _timer?.Dispose();
+        GC.SuppressFinalize(this);
         base.Dispose();
     }
 }

@@ -3,7 +3,7 @@ using Iot.Device.Adc;
 
 namespace EScooter.Agent.Raspberry.IO.Sensors.Gpio;
 
-public class GpioBatterySensor : BaseMcp3xxxSensor<Fraction>
+public class GpioBatterySensor : BaseMcp3xxxSensor<Fraction>, IBatterySensor
 {
     public GpioBatterySensor(Mcp3xxx mcp, int mcpChannel) : base(mcp, mcpChannel)
     {

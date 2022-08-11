@@ -10,7 +10,7 @@ public record struct Fraction : IComparable<Fraction>
 
     private Fraction(double percentage)
     {
-        if (percentage < 0 || percentage > 100)
+        if (percentage is < 0 or > 100)
         {
             throw new ArgumentException("Percentage must be between 0 and 100, inclusive.");
         }
@@ -19,7 +19,7 @@ public record struct Fraction : IComparable<Fraction>
 
     public static Fraction FromFraction(double fraction)
     {
-        if (fraction < 0 || fraction > 1)
+        if (fraction is < 0 or > 1)
         {
             throw new ArgumentException("Fraction must be between 0 and 1, inclusive.");
         }

@@ -53,5 +53,9 @@ public class IotHubScooterWrapper : IDisposable
 
     private ScooterDesiredState ToDesiredState(string json) => ScooterDesiredDto.FromJson(json).ToDesiredState();
 
-    public void Dispose() => _deviceClient.Dispose();
+    public void Dispose()
+    {
+        _deviceClient.Dispose();
+        GC.SuppressFinalize(this);
+    }
 }

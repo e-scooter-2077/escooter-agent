@@ -3,9 +3,14 @@ using UnitsNet;
 
 namespace EScooter.Agent.Raspberry.IO.Actuators.Gpio;
 
-public class GpioMaxSpeedEnforcer : IActuator<Speed>
+public class GpioMaxSpeedEnforcer : IMaxSpeedEnforcer
 {
-    public void SetValue(Speed value)
+    private readonly SpeedLcd _speedDisplay;
+
+    public GpioMaxSpeedEnforcer(SpeedLcd speedDisplay)
     {
+        _speedDisplay = speedDisplay;
     }
+
+    public void SetValue(Speed speed) => _speedDisplay.SetMaxSpeed(speed);
 }

@@ -3,7 +3,7 @@ using System.Device.Gpio;
 
 namespace EScooter.Agent.Raspberry.IO.Actuators.Gpio;
 
-public class GpioMagneticBrake : IActuator<bool>
+public class GpioMagneticBrake : IMagneticBrake
 {
     private readonly int _pin;
     private readonly GpioController _gpioController;

@@ -1,11 +1,10 @@
-﻿using Geolocation;
-using UnitsNet;
-
-namespace EScooter.Agent.Raspberry.Model;
+﻿namespace EScooter.Agent.Raspberry.Model;
 
 public record ScooterHardware(
-    ISensor<Speed> Speedometer,
-    ISensor<Coordinate> Gps,
-    ISensor<Fraction> Battery,
-    IActuator<bool> MagneticBrakes,
-    IActuator<Speed> MaxSpeedEnforcer);
+    ISpeedometer Speedometer,
+    IGpsSensor Gps,
+    IBatterySensor Battery,
+    IMagneticBrake MagneticBrakes,
+    IMaxSpeedEnforcer MaxSpeedEnforcer,
+    ISpeedDisplay SpeedDisplay,
+    IBatteryDisplay BatteryDisplay);
