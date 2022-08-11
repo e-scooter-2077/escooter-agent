@@ -5,12 +5,12 @@ namespace EScooter.Agent.Raspberry.IO.Actuators.Gpio;
 
 public class GpioSpeedDisplay : ISpeedDisplay
 {
-    private readonly SpeedLcd _speedLcd;
+    private readonly LcdDisplay _lcd;
 
-    public GpioSpeedDisplay(SpeedLcd speedLcd)
+    public GpioSpeedDisplay(LcdDisplay lcd)
     {
-        _speedLcd = speedLcd;
+        _lcd = lcd;
     }
 
-    public void SetValue(Speed value) => _speedLcd.SetCurrentSpeed(value);
+    public void SetValue(Speed value) => _lcd.SetCurrentSpeed(value);
 }

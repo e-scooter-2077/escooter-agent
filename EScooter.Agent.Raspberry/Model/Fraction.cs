@@ -2,7 +2,7 @@
 
 public record struct Fraction : IComparable<Fraction>
 {
-    public double Base100ValueRounded => Math.Round(Base100Value, 2);
+    public int Base100ValueRounded => (int)Math.Round(Base100Value);
 
     public double Base100Value { get; }
 

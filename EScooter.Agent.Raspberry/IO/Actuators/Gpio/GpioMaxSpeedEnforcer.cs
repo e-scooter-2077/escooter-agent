@@ -5,12 +5,12 @@ namespace EScooter.Agent.Raspberry.IO.Actuators.Gpio;
 
 public class GpioMaxSpeedEnforcer : IMaxSpeedEnforcer
 {
-    private readonly SpeedLcd _speedDisplay;
+    private readonly LcdDisplay _lcd;
 
-    public GpioMaxSpeedEnforcer(SpeedLcd speedDisplay)
+    public GpioMaxSpeedEnforcer(LcdDisplay lcd)
     {
-        _speedDisplay = speedDisplay;
+        _lcd = lcd;
     }
 
-    public void SetValue(Speed speed) => _speedDisplay.SetMaxSpeed(speed);
+    public void SetValue(Speed speed) => _lcd.SetMaxSpeed(speed);
 }
