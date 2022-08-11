@@ -46,6 +46,6 @@ public class LcdDisplay
     public void SetBatteryLevel(Fraction batteryLevel)
     {
         _lcd.SetCursorPosition(0, BatteryRow);
-        _lcd.Write($"{batteryLevel.Base100ValueRounded,3}%");
+        _lcd.Write($"{batteryLevel.Base100ValueRounded,-3}%");
     }
 }
