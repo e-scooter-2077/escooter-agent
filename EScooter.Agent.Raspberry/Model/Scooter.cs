@@ -51,6 +51,7 @@ public class Scooter
         void SetStandby(bool standby)
         {
             ApplyDesiredMaxSpeed(standby ? _standbyMaxSpeed : CurrentDesiredState.MaxSpeed);
+            _hardware.StandbyIndicator.SetValue(standby);
             CurrentReportedState = CurrentReportedState with
             {
                 Standby = standby

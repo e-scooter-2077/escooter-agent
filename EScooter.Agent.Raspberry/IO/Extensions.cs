@@ -19,6 +19,7 @@ public static class Extensions
         services.AddSingleton<IMaxSpeedEnforcer, MockMaxSpeedEnforcer>();
         services.AddSingleton<ISpeedDisplay, MockSpeedDisplay>();
         services.AddSingleton<IBatteryDisplay, MockBatteryDisplay>();
+        services.AddSingleton<IStandbyIndicator, MockStandbyIndicator>();
 
         return services;
     }
@@ -35,6 +36,10 @@ public static class Extensions
 
         services.AddSingleton<IMagneticBrake>(p => new GpioMagneticBrake(
             configuration.GetValue<int>("Brakes:Pin"),
+            p.GetRequiredService<GpioController>()));
+
+        services.AddSingleton<IStandbyIndicator>(p => new GpioStandbyIndicator(
+            configuration.GetValue<int>("StandbyIndicator:Pin"),
             p.GetRequiredService<GpioController>()));
 
         services.AddSingleton(p => LcdInterface.CreateGpio(

@@ -17,3 +17,7 @@ public interface ISpeedDisplay : IActuator<Speed>
 public interface IBatteryDisplay : IActuator<Fraction>
 {
 }
+
+public interface IStandbyIndicator : IActuator<bool>
+{
+}

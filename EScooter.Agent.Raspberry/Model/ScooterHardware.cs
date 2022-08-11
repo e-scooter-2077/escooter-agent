@@ -7,4 +7,5 @@ public record ScooterHardware(
     IMagneticBrake MagneticBrakes,
     IMaxSpeedEnforcer MaxSpeedEnforcer,
     ISpeedDisplay SpeedDisplay,
-    IBatteryDisplay BatteryDisplay);
+    IBatteryDisplay BatteryDisplay,
+    IStandbyIndicator StandbyIndicator);
