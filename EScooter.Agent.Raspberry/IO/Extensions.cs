@@ -1,5 +1,6 @@
 ﻿using EScooter.Agent.Raspberry.IO.Actuators.Gpio;
 using EScooter.Agent.Raspberry.IO.Actuators.Mock;
+using EScooter.Agent.Raspberry.IO.Sensors.Gpio;
 using EScooter.Agent.Raspberry.IO.Sensors.Mock;
 using EScooter.Agent.Raspberry.Model;
 using Iot.Device.CharacterLcd;
@@ -31,8 +32,7 @@ public static class Extensions
         // TODO: when we have an ADC, use Gpio implementations instead of the Mock ones.
         services.AddSingleton<ISpeedometer, MockSpeedometer>();
         services.AddSingleton<IBatterySensor, MockBatterySensor>();
-        ////services.AddSingleton<IGpsSensor>(_ => new GpioGpsSensor(configuration.GetValue<string>("Gps:SerialPortName")));
-        services.AddSingleton<IGpsSensor, MockGpsSensor>();
+        services.AddSingleton<IGpsSensor>(_ => new GpioGpsSensor(configuration.GetValue<string>("Gps:SerialPortName")));
 
         services.AddSingleton<IMagneticBrake>(p => new GpioMagneticBrake(
             configuration.GetValue<int>("Brakes:Pin"),
