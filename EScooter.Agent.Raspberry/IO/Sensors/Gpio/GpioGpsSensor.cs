@@ -36,6 +36,7 @@ public class GpioGpsSensor : IGpsSensor, IDisposable
         lock (this)
         {
             _currentPosition = new Coordinate(position.Latitude, position.Longitude);
+            Console.WriteLine($"New position read: {position.Latitude}, {position.Longitude}");
         }
     }
 
