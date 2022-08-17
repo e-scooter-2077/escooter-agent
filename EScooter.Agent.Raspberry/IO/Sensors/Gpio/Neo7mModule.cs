@@ -1,19 +1,19 @@
 ﻿using EScooter.Agent.Raspberry.Model;
 using Geolocation;
-using Iot.Device.Common;
 using Iot.Device.Nmea0183;
 using Iot.Device.Nmea0183.Sentences;
 using System.IO.Ports;
+using UnitsNet;
 
 namespace EScooter.Agent.Raspberry.IO.Sensors.Gpio;
 
-public class GpioGpsSensorV2 : IGpsSensor, IDisposable
+public class Neo7mModule : ISpeedometer, IGpsSensor, IDisposable
 {
     private readonly CancellationTokenSource _cts;
     private readonly SerialPort _serialPort;
-    private Coordinate _currentPosition;
+    private RecommendedMinimumNavigationInformation? _lastRmcSentence;
 
-    public GpioGpsSensorV2(string serialPortName)
+    public Neo7mModule(string serialPortName)
     {
         _serialPort = new SerialPort(serialPortName)
         {
@@ -44,29 +44,40 @@ public class GpioGpsSensorV2 : IGpsSensor, IDisposable
         var typedSentence = sentence?.TryGetTypedValue(ref lastMessageTime);
         if (typedSentence is RecommendedMinimumNavigationInformation rmc)
         {
-            Console.WriteLine($"Read from GPS sensor: {line}");
-            OnNewPosition(rmc.Position);
+            OnNewSatelliteData(rmc);
         }
     }
 
-    private void OnNewPosition(GeographicPosition position)
+    private void OnNewSatelliteData(RecommendedMinimumNavigationInformation rmc)
     {
-        if (!position.ContainsValidPosition())
+        if (rmc.Status is not NavigationStatus.Valid)
         {
             return;
         }
 
         lock (this)
         {
-            _currentPosition = new Coordinate(position.Latitude, position.Longitude);
+            _lastRmcSentence = rmc;
         }
     }
 
-    public Coordinate ReadValue()
+    Coordinate ISensor<Coordinate>.ReadValue()
     {
         lock (this)
         {
-            return _currentPosition;
+            return _lastRmcSentence is null || !_lastRmcSentence.Position.ContainsValidPosition()
+                ? new Coordinate(0, 0)
+                : new Coordinate(_lastRmcSentence.Position.Latitude, _lastRmcSentence.Position.Longitude);
+        }
+    }
+
+    Speed ISensor<Speed>.ReadValue()
+    {
+        lock (this)
+        {
+            return _lastRmcSentence is null
+                ? Speed.Zero
+                : _lastRmcSentence.SpeedOverGround;
         }
     }
 

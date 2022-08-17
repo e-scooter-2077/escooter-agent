@@ -29,10 +29,11 @@ public static class Extensions
     {
         services.AddSingleton(_ => new GpioController(PinNumberingScheme.Board));
 
-        // TODO: when we have an ADC, use Gpio implementations instead of the Mock ones.
-        services.AddSingleton<ISpeedometer, MockSpeedometer>();
+        // TODO: when we have an ADC, use Gpio implementation instead of the Mock one.
         services.AddSingleton<IBatterySensor, MockBatterySensor>();
-        services.AddSingleton<IGpsSensor>(_ => new GpioGpsSensorV2(configuration.GetValue<string>("Gps:SerialPortName")));
+        services.AddSingleton(_ => new Neo7mModule(configuration.GetValue<string>("Neo7m:SerialPortName")));
+        services.AddSingleton<IGpsSensor>(p => p.GetRequiredService<Neo7mModule>());
+        services.AddSingleton<ISpeedometer>(p => p.GetRequiredService<Neo7mModule>());
 
         services.AddSingleton<IMagneticBrake>(p => new GpioMagneticBrake(
             configuration.GetValue<int>("Brakes:Pin"),
