@@ -19,8 +19,6 @@ public class GpioGpsSensorV2 : IGpsSensor, IDisposable
         {
             NewLine = "\r\n"
         };
-        _serialPort.Open();
-        _serialPort.ReadLine();
         _cts = new CancellationTokenSource();
 
         Task.Run(() => Reader(_cts.Token));
@@ -28,32 +26,26 @@ public class GpioGpsSensorV2 : IGpsSensor, IDisposable
 
     private void Reader(CancellationToken cancellationToken)
     {
+        _serialPort.Open();
+
+        _serialPort.ReadLine();
+
         var lastMessageTime = DateTimeOffset.UtcNow;
         while (!cancellationToken.IsCancellationRequested)
         {
-            var line = _serialPort.ReadLine();
+            ReadNextLine(ref lastMessageTime);
+        }
+    }
+
+    private void ReadNextLine(ref DateTimeOffset lastMessageTime)
+    {
+        var line = _serialPort.ReadLine();
+        var sentence = TalkerSentence.FromSentenceString(line, out _);
+        var typedSentence = sentence?.TryGetTypedValue(ref lastMessageTime);
+        if (typedSentence is RecommendedMinimumNavigationInformation rmc)
+        {
             Console.WriteLine($"Read from GPS sensor: {line}");
-
-            var sentence = TalkerSentence.FromSentenceString(line, out _);
-
-            if (sentence == null)
-            {
-                continue;
-            }
-
-            var typedSentence = sentence.TryGetTypedValue(ref lastMessageTime);
-            if (typedSentence is null)
-            {
-                Console.WriteLine($"Unknown sentence type '{sentence.Id}'");
-            }
-            else if (typedSentence is not RecommendedMinimumNavigationInformation rmc)
-            {
-                Console.WriteLine($"Sentence type '{sentence.Id}' will be ignored");
-            }
-            else
-            {
-                OnNewPosition(rmc.Position);
-            }
+            OnNewPosition(rmc.Position);
         }
     }
 
@@ -61,7 +53,6 @@ public class GpioGpsSensorV2 : IGpsSensor, IDisposable
     {
         if (!position.ContainsValidPosition())
         {
-            Console.WriteLine("Message contains invalid position");
             return;
         }
 
@@ -84,5 +75,6 @@ public class GpioGpsSensorV2 : IGpsSensor, IDisposable
         _cts.Cancel();
         _cts.Dispose();
         _serialPort.Dispose();
+        GC.SuppressFinalize(this);
     }
 }

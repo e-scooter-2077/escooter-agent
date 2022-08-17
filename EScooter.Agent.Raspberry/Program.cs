@@ -3,7 +3,7 @@ using EScooter.Agent.Raspberry.IO;
 using EScooter.Agent.Raspberry.IotHub;
 using EScooter.Agent.Raspberry.Model;
 
-IHost host = Host.CreateDefaultBuilder(args)
+var host = Host.CreateDefaultBuilder(args)
     .ConfigureServices((context, services) =>
     {
         services.AddHostedService<ScooterWorker>();
