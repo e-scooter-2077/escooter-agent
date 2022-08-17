@@ -22,7 +22,13 @@ public class GpioGpsSensor : IGpsSensor, IDisposable
 
         var parser = new NmeaParser("GPS", stream, stream);
         parser.OnNewPosition += OnNewPosition;
+        parser.OnParserError += OnParserError;
         parser.StartDecode();
+    }
+
+    private void OnParserError(NmeaSinkAndSource source, string message, NmeaError error)
+    {
+        Console.WriteLine($"{error} error occured while reading GPS sensor: {message}");
     }
 
     private void OnNewPosition(GeographicPosition position, Angle? track, Speed? speed)
