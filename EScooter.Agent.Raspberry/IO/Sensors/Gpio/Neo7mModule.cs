@@ -84,7 +84,6 @@ public class Neo7mModule : ISpeedometer, IGpsSensor, IDisposable
     public void Dispose()
     {
         _cts.Cancel();
-        _cts.Dispose();
         _serialPort.Dispose();
         GC.SuppressFinalize(this);
     }
