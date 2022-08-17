@@ -15,8 +15,12 @@ public class GpioGpsSensor : IGpsSensor, IDisposable
 
     public GpioGpsSensor(string serialPortName)
     {
-        _serialPort = new SerialPort(serialPortName);
+        _serialPort = new SerialPort(serialPortName)
+        {
+            NewLine = "\r\n"
+        };
         _serialPort.Open();
+        _serialPort.ReadLine();
 
         var stream = _serialPort.BaseStream;
 
