@@ -32,7 +32,7 @@ public static class Extensions
         // TODO: when we have an ADC, use Gpio implementations instead of the Mock ones.
         services.AddSingleton<ISpeedometer, MockSpeedometer>();
         services.AddSingleton<IBatterySensor, MockBatterySensor>();
-        services.AddSingleton<IGpsSensor>(_ => new GpioGpsSensor(configuration.GetValue<string>("Gps:SerialPortName")));
+        services.AddSingleton<IGpsSensor>(_ => new GpioGpsSensorV2(configuration.GetValue<string>("Gps:SerialPortName")));
 
         services.AddSingleton<IMagneticBrake>(p => new GpioMagneticBrake(
             configuration.GetValue<int>("Brakes:Pin"),
