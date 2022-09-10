@@ -79,12 +79,6 @@
           "StyleCop.Analyzers.Unstable": "1.2.0.354"
         }
       },
-      "System.Device.Gpio": {
-        "type": "Direct",
-        "requested": "[2.1.0, )",
-        "resolved": "2.1.0",
-        "contentHash": "A/9kEYPu11g0G43uBQT8KVh/6CKJfY6qVBJNrB3teWgxMOENIHy6ll8v5aXkzvyv2WYQFJeCCrZPLkZiQ/iLEw=="
-      },
       "DotNetty.Buffers": {
         "type": "Transitive",
         "resolved": "0.7.0",
@@ -716,6 +710,11 @@
           "System.Runtime": "4.3.0",
           "System.Text.Encoding": "4.3.0"
         }
+      },
+      "System.Device.Gpio": {
+        "type": "Transitive",
+        "resolved": "2.1.0",
+        "contentHash": "A/9kEYPu11g0G43uBQT8KVh/6CKJfY6qVBJNrB3teWgxMOENIHy6ll8v5aXkzvyv2WYQFJeCCrZPLkZiQ/iLEw=="
       },
       "System.Diagnostics.Debug": {
         "type": "Transitive",
