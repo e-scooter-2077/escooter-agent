@@ -1,6 +1,5 @@
 ﻿using EScooter.Agent.Raspberry.IO.Actuators.Gpio;
 using EScooter.Agent.Raspberry.IO.Actuators.Mock;
-using EScooter.Agent.Raspberry.IO.Sensors.Gpio;
 using EScooter.Agent.Raspberry.IO.Sensors.Mock;
 using EScooter.Agent.Raspberry.Model;
 using Iot.Device.CharacterLcd;
@@ -14,7 +13,7 @@ public static class Extensions
     {
         services.AddSingleton<ISpeedometer, MockSpeedometer>();
         services.AddSingleton<IBatterySensor, MockBatterySensor>();
-        services.AddSingleton<IGpsSensor, MockGpsSensor>();
+        services.AddSingleton<IGpsSensor, MockSpeedAndGpsSensor>();
 
         services.AddSingleton<IMagneticBrake, MockMagneticBrake>();
         services.AddSingleton<IMaxSpeedEnforcer, MockMaxSpeedEnforcer>();
@@ -30,13 +29,22 @@ public static class Extensions
         services.AddSingleton(_ => new GpioController(PinNumberingScheme.Board));
 
         services.AddSingleton<IBatterySensor, MockBatterySensor>(); // Use the mock since we do not own an ADC.
-        services.AddSingleton(_ => new Neo7mModule(configuration.GetValue<string>("Neo7m:SerialPortName")));
-        services.AddSingleton<IGpsSensor>(p => p.GetRequiredService<Neo7mModule>());
-        services.AddSingleton<ISpeedometer>(p => p.GetRequiredService<Neo7mModule>());
 
-        services.AddSingleton<IMagneticBrake>(p => new GpioMagneticBrake(
+        ////services.AddSingleton(_ => new Neo7mModule(configuration.GetValue<string>("Neo7m:SerialPortName")));
+        ////services.AddSingleton<IGpsSensor>(p => p.GetRequiredService<Neo7mModule>());
+        ////services.AddSingleton<ISpeedometer>(p => p.GetRequiredService<Neo7mModule>());
+        ////services.AddSingleton<IMagneticBrake>(p => new GpioMagneticBrake(
+        ////    configuration.GetValue<int>("Brakes:Pin"),
+        ////    p.GetRequiredService<GpioController>()));
+
+        services.AddSingleton(p => new MockSpeedAndGpsSensor(new GpioMagneticBrake(
             configuration.GetValue<int>("Brakes:Pin"),
-            p.GetRequiredService<GpioController>()));
+            p.GetRequiredService<GpioController>())));
+
+        services.AddSingleton<IGpsSensor>(p => p.GetRequiredService<MockSpeedAndGpsSensor>());
+        services.AddSingleton<ISpeedometer>(p => p.GetRequiredService<MockSpeedAndGpsSensor>());
+
+        services.AddSingleton<IMagneticBrake>(p => p.GetRequiredService<MockSpeedAndGpsSensor>());
 
         services.AddSingleton<IStandbyIndicator>(p => new GpioStandbyIndicator(
             configuration.GetValue<int>("StandbyIndicator:Pin"),
