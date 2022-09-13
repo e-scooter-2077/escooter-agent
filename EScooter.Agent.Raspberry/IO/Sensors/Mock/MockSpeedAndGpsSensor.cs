@@ -60,7 +60,7 @@ public class MockSpeedAndGpsSensor : IGpsSensor, IMagneticBrake, ISpeedometer
         }
     }
 
-    Speed ISensor<Speed>.ReadValue() => _isLocked
+    Speed ISensor<Speed>.ReadValue() => _isLocked || _elapsed < _period
         ? Speed.Zero
         : Length.FromMiles(GeoCalculator.GetDistance(_initial, _final)) / _elapsed;
 }
