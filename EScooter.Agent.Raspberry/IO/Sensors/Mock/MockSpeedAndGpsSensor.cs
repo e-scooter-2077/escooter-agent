@@ -10,6 +10,7 @@ public class MockSpeedAndGpsSensor : IGpsSensor, IMagneticBrake, ISpeedometer
     private static readonly TimeSpan _duration = TimeSpan.FromMinutes(4);
     private static readonly Coordinate _initial = new(44.143043, 12.247474);
     private static readonly Coordinate _final = new(44.142935, 12.2386884);
+    private static readonly Speed _speed = Length.FromMiles(GeoCalculator.GetDistance(_initial, _final)) / _duration;
 
     private readonly IMagneticBrake _magneticBrake;
     private Timer? _timer;
@@ -60,7 +61,5 @@ public class MockSpeedAndGpsSensor : IGpsSensor, IMagneticBrake, ISpeedometer
         }
     }
 
-    Speed ISensor<Speed>.ReadValue() => _isLocked || _elapsed < _period
-        ? Speed.Zero
-        : Length.FromMiles(GeoCalculator.GetDistance(_initial, _final)) / _elapsed;
+    Speed ISensor<Speed>.ReadValue() => _isLocked ? Speed.Zero : _speed;
 }
