@@ -4,7 +4,7 @@ namespace EScooter.Agent.Raspberry.IO.Sensors.Mock;
 
 public class MockBatterySensor : IBatterySensor
 {
-    public static readonly TimeSpan TotalBatteryDuration = TimeSpan.FromMinutes(5); // Simulate a battery that runs out in 5 minutes.
+    public static readonly TimeSpan TotalBatteryDuration = TimeSpan.FromMinutes(7); // Simulate a battery that runs out in 5 minutes.
 
     private readonly DateTime _created;
 
