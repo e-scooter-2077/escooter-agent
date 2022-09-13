@@ -13,7 +13,7 @@ public class MockSpeedAndGpsSensor : IGpsSensor, IMagneticBrake, ISpeedometer
 
     private readonly IMagneticBrake _magneticBrake;
     private Timer? _timer;
-    private bool _isLocked;
+    private bool _isLocked = true;
     private Coordinate _currentPosition = _initial;
     private TimeSpan _elapsed = TimeSpan.Zero;
 
