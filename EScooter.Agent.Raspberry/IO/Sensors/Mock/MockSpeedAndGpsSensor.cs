@@ -26,7 +26,7 @@ public class MockSpeedAndGpsSensor : IGpsSensor, IMagneticBrake, ISpeedometer
     {
         if (_isLocked != value)
         {
-            if (value)
+            if (!value)
             {
                 _timer = new Timer(_ => UpdatePosition(), null, TimeSpan.Zero, _period);
             }
